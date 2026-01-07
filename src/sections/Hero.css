@@ -1,0 +1,90 @@
+.hero-container {
+  position: relative;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+  color: #ffffff;   /* FIXED */
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  
+
+  background-size: cover;
+  background-position: center;
+  opacity: 0.25;
+  filter: brightness(0.5);
+  z-index: 0;
+}
+
+
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+ 
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  padding: 20px;
+}
+
+.hero-title {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #00ffff;
+  text-shadow:
+    0 0 10px #0004ff,
+    0 0 20px #00c3ff,
+    0 0 40px #234b04,
+    0 0 60px #8a2be2; /* subtle purple glow for luxury feel */
+}
+
+.hero-slogan {
+  font-size: 1.5rem;
+  font-style: bold;
+  color: #ccc; /* softer gray for elegance */
+  margin-top: 0.5rem;
+  text-shadow: 0 0 5px rgba(0,255,255,0.3);
+}
+
+.hero-desc {
+  font-size: 1rem;
+  color: #aaa;
+  margin-top: 1rem;
+}
+
+.hero-button {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 1rem 2rem;
+  border: 2px solid #00ffff;
+  border-radius: 9999px;
+  color: #00ffff;
+  text-decoration: none;
+  font-weight: bold;
+  background: linear-gradient(135deg, #00ffff, #8a2be2);
+  box-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff, 0 0 50px #8a2be2;
+  transition: all 0.3s ease;
+  animation: pulse 2s infinite;
+}
+
+.hero-button:hover {
+  background: linear-gradient(135deg, #8a2be2, #00ffff);
+  color: #000;
+  transform: scale(1.05);
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff, 0 0 50px #8a2be2; }
+  50% { box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff, 0 0 80px #8a2be2; }
+}
