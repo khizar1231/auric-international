@@ -16,6 +16,8 @@ export default function Navbar() {
             target="_blank"
             rel="noreferrer"
           >
+
+
             <Instagram size={20} />
           </a>
 
@@ -41,6 +43,7 @@ export default function Navbar() {
           <a href="#factory">Factory</a>
           <a href="#whyus">WhyUs</a>
           <a href="#contact">Contact</a>
+           <a href="/catalogue.pdf">Catalogue</a>
         </div>
 
         {/* MOBILE MENU BUTTON */}
@@ -58,6 +61,8 @@ export default function Navbar() {
           <a href="#factory" onClick={() => setOpen(false)}>Factory</a>
           <a href="#whyus" onClick={() => setOpen(false)}>Why Us</a>
           <a href="#contact" onClick={() => setOpen(false)}>Contact</a>
+          <a href="/catalogue.pdf"  onClick={() => setOpen(false)}>Catalogue</a>
+
         </div>
       )}
     </nav>

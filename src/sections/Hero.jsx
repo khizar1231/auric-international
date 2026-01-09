@@ -20,6 +20,8 @@ export default function Hero() {
         <a href="#contact" className="hero-button">
           Contact Us
         </a>
+        <a href="/catalogue.pdf"  className="hero-button"  > View Catalogue</a>
+
       </div>
     </section>
   );
