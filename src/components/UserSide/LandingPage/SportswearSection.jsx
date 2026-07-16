@@ -54,14 +54,14 @@ const SportswearSection = () => {
               <li className="flex items-center gap-3">
                 <span className="w-2 h-2 rounded-full bg-slate-900"></span>
                 <span className="text-base font-semibold text-gray-700">
-                  Sportswear
+                  Fashion Wear
                 </span>
               </li>
 
               <li className="flex items-center gap-3">
                 <span className="w-2 h-2 rounded-full bg-slate-900"></span>
                 <span className="text-base font-semibold text-gray-700">
-                  Fashion Wear
+                  Sports Wear
                 </span>
               </li>
 
