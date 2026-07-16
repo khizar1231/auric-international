@@ -95,7 +95,7 @@ const WhyChooseUs = () => {
           {/* Left Side */}
           <div>
             <h3 className="text-base md:text-lg font-bold text-black leading-relaxed mb-6">
-              What Makes X Athletic Wear The Top Choice Of Brands, Retailers,
+              What Makes AURIC INTERNATIONAL The Top Choice Of Brands, Retailers,
               And Wholesalers For Clothing Manufacturing In Pakistan?
             </h3>
 
