@@ -136,7 +136,7 @@ export default function Navbar() {
               />
             ))}
             
-            <NavItem to="/service" label="Services" />
+            <NavItem to="/service" label="Exclusive Deals" />
             <NavItem to="/about" label="About" />
             <NavItem to="/contact" label="Contact" />
           </motion.nav>
@@ -342,7 +342,7 @@ export default function Navbar() {
                   className="flex items-center gap-4 rounded-xl p-3 hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-colors group"
                 >
                   <BriefcaseBusiness size={20} className="group-hover:scale-110 transition-transform" />
-                  <span className="font-bold text-[15px] uppercase tracking-wider">Services</span>
+                  <span className="font-bold text-[15px] uppercase tracking-wider">Exclusive Deals</span>
                 </NavLink>
 
                 <NavLink

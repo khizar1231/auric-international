@@ -42,7 +42,7 @@ const Footer = () => {
                 Contact
               </NavLink>
               <NavLink to="/service" className="hover:text-red-400 transition">
-                Services
+                Exclusive Deals
               </NavLink>
             </div>
           </div>

@@ -39,11 +39,15 @@ import facility3 from "./Facility/facility3.png"
 import facility4 from "./Facility/facility4.png"
 import AuricLogo from "./AuricLogo.png"
 
+
 // Process Images Added Here
 import process1 from "./process1.jpeg"
 import process2 from "./process2.jpeg"
 import process3 from "./process3.jpeg"
 import process4 from "./process4.jpeg"
+
+import deal1 from './deal1.jpeg'; // Premium T-Shirt Deal
+import deal2 from './deal2.jpeg';
 
 
 export const assets = {
@@ -66,7 +70,9 @@ export const assets = {
     process1,
     process2,
     process3,
-    process4
+    process4,
+    deal1,
+    deal2
 }
 
 
