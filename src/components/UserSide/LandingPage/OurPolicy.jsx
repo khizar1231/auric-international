@@ -12,8 +12,8 @@ const OurPolicy = () => {
           alt=""
           loading="lazy"
         />
-        <p className="font-semibold">Easy Exchange Policy</p>
-        <p className="text-gray-400">We offere hassle free exchange policy</p>
+        <p className="font-semibold">Sampling Before Bulk</p>
+        <p className="text-gray-400">Approve samples before you go for bulk</p>
       </div>
       <div>
         <img
@@ -22,8 +22,8 @@ const OurPolicy = () => {
           alt=""
           loading="lazy"
         />
-        <p className="font-semibold">7 days Return Policy</p>
-        <p className="text-gray-400">We provide 7 days free return policy</p>
+        <p className="font-semibold">Transparent Process</p>
+        <p className="text-gray-400">We Show all the process through videos and video calls.</p>
       </div>
       <div>
         <img
