@@ -77,6 +77,34 @@ export const assets = {
 
 
 export const productCategories = {
+
+  
+  "Casual Wear": {
+    Clothing: [
+      "Shorts",
+      "Hoodie",
+      "Hoodies (Women)",
+      "Long Sleeve T Shirt",
+      "Sweat Shirts",
+      "Long Coat",
+      "Polo Shirts",
+      "T-Shirts",
+      "T-Shirt (Women)",
+      "Trousers",
+    ],
+  },
+
+  Jackets: {
+    Clothing: [
+      "Fleece Jackets",
+      "Softshell Jackets",
+      "Rain Jackets",
+      "Windbreaker Jackets",
+      "Varsity Jackets",
+    ],
+  },
+
+  
   "Sports Apparel": {
     "Sports Wear Uniforms": [
       "American Football Uniform",
@@ -135,28 +163,4 @@ export const productCategories = {
     ],
   },
 
-  "Casual Wear": {
-    Clothing: [
-      "Shorts",
-      "Hoodie",
-      "Hoodies (Women)",
-      "Long Sleeve T Shirt",
-      "Sweat Shirts",
-      "Long Coat",
-      "Polo Shirts",
-      "T-Shirts",
-      "T-Shirt (Women)",
-      "Trousers",
-    ],
-  },
-
-  Jackets: {
-    Clothing: [
-      "Fleece Jackets",
-      "Softshell Jackets",
-      "Rain Jackets",
-      "Windbreaker Jackets",
-      "Varsity Jackets",
-    ],
-  },
 };
