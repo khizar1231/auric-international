@@ -347,12 +347,12 @@ export default function Navbar() {
                 </NavLink>
 
                 <NavLink
-                  to="/pages/UserPages/Quote"
+                  to="/quote"
                   onClick={() => setMobileMenu(false)}
                   className="flex items-center gap-4 rounded-xl p-3 hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-colors group"
                 >
                   <FileText size={20} className="group-hover:scale-110 transition-transform" />
-                  <span className="font-bold text-[15px] uppercase tracking-wider">Quote</span>
+                  <span className="font-bold text-[15px] uppercase tracking-wider">Get Quotation</span>
                 </NavLink>
 
                 <NavLink
