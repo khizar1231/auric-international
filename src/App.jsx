@@ -10,6 +10,7 @@ import About from "./pages/UserPages/About";
 import Footer from "./components/UserSide/Footer";
 import Whatsapp from "./components/UserSide/Whatsapp";
 import Contact from "./pages/UserPages/Contact";
+import Quote from "./pages/UserPages/Quote";
 import ServicesSection from "./components/UserSide/ServicesSection";
 import Collection from "./pages/UserPages/Collection";
 import Product from "./pages/UserPages/Product";
@@ -42,6 +43,7 @@ function App() {
         <Route path="/" element={<SportswearWebsite />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+         <Route path="/quote" element={<Quote />} />
         <Route path="/service" element={<ServicesSection />} />
         <Route path="/product" element={<Collection />} />
         <Route path="/product/:productId" element={<Product />} />

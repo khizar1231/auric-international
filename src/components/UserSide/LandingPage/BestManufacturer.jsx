@@ -8,9 +8,9 @@ const BestManufacturer = () => {
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         {/* Button */}
         <div className="flex justify-center mb-4">
-        <Link to="/contact">
-          <button className="cursor-pointer bg-gradient-to-b from-orange-400 to-orange-700 text-white font-semibold tracking-[3px] px-8 py-4 rounded-md hover:scale-105 duration-300">
-            Inquiry Now
+        <Link to="/quote">
+          <button className="cursor-pointer bg-gradient-to-b from-yellow-400 to-red-700 text-white font-semibold tracking-[3px] px-8 py-4 rounded-md hover:scale-105 duration-300">
+            Get Quotation
           </button>
         </Link>
         </div>

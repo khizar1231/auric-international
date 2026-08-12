@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   BriefcaseBusiness,
+  FileText,
 } from "lucide-react";
 import { productCategories } from "../../assets/assets";
 
@@ -24,7 +25,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [openCategory, setOpenCategory] = useState(null);
   const [openSubCategory, setOpenSubCategory] = useState(null);
-  
+
   const location = useLocation();
   const isHome = location.pathname === "/";
   const transparent = isHome && !scrolled;
@@ -86,7 +87,6 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-[1500px] mx-auto px-6 lg:px-12 flex items-center justify-between">
-          
           {/* ================= Logo (Updated for Transparent Image) ================= */}
           <Link to="/" className="flex items-center gap-3 md:gap-4 group">
             {/* Removed the black background, rounded corners, and hidden overflow */}
@@ -125,7 +125,7 @@ export default function Navbar() {
             className="hidden lg:flex items-center gap-8"
           >
             <NavItem to="/" label="Home" />
-            
+
             {/* Mega Menus Dropdowns */}
             {Object.entries(productCategories).map(([title, categories]) => (
               <MegaMenu
@@ -135,8 +135,9 @@ export default function Navbar() {
                 transparent={transparent}
               />
             ))}
-            
+
             <NavItem to="/service" label="Exclusive Deals" />
+            <NavItem to="/Quote" label="Get Quote" />
             <NavItem to="/about" label="About" />
             <NavItem to="/contact" label="Contact" />
           </motion.nav>
@@ -184,7 +185,7 @@ export default function Navbar() {
               onClick={() => setMobileMenu(false)}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[998] lg:hidden"
             />
-            
+
             {/* Side Panel */}
             <motion.div
               initial={{ opacity: 0, x: "100%" }}
@@ -343,6 +344,15 @@ export default function Navbar() {
                 >
                   <BriefcaseBusiness size={20} className="group-hover:scale-110 transition-transform" />
                   <span className="font-bold text-[15px] uppercase tracking-wider">Exclusive Deals</span>
+                </NavLink>
+
+                <NavLink
+                  to="/pages/UserPages/Quote"
+                  onClick={() => setMobileMenu(false)}
+                  className="flex items-center gap-4 rounded-xl p-3 hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-colors group"
+                >
+                  <FileText size={20} className="group-hover:scale-110 transition-transform" />
+                  <span className="font-bold text-[15px] uppercase tracking-wider">Quote</span>
                 </NavLink>
 
                 <NavLink
