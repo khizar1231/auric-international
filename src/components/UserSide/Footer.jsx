@@ -42,6 +42,7 @@ const Footer = () => {
             { name: "About", path: "/about" },
             { name: "Exclusive Deals", path: "/service" },
             { name: "Contact", path: "/contact" },
+             { name: "Get Quotation", path: "/quote" },
           ].map((link, idx) => (
             <NavLink
               key={idx}

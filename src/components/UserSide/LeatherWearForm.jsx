@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Upload, CheckCircle2, MessageSquare, Sparkles } from 'lucide-react';
+import { Shield, Upload, CheckCircle2, MessageSquare, Sparkles, AlertCircle } from 'lucide-react';
 
 export default function LeatherWearForm({ onBack }) {
   const [formData, setFormData] = useState({
@@ -35,6 +35,7 @@ export default function LeatherWearForm({ onBack }) {
     additionalNotes: ''
   });
 
+  const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
   // Exact Options Mapped from Uploaded Screenshots
@@ -93,6 +94,7 @@ export default function LeatherWearForm({ onBack }) {
         ? prev.products.filter(p => p !== prod)
         : [...prev.products, prod]
     }));
+    if (errors.products) setErrors(prev => ({ ...prev, products: null }));
   };
 
   const handleSizeToggle = (sz) => {
@@ -102,6 +104,7 @@ export default function LeatherWearForm({ onBack }) {
         ? prev.selectedSizes.filter(s => s !== sz)
         : [...prev.selectedSizes, sz]
     }));
+    if (errors.selectedSizes) setErrors(prev => ({ ...prev, selectedSizes: null }));
   };
 
   const handleFileUpload = (e) => {
@@ -111,12 +114,56 @@ export default function LeatherWearForm({ onBack }) {
     }));
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Client Info
+    if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required.';
+    if (!formData.companyName.trim()) newErrors.companyName = 'Company / Label Name is required.';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email Address is required.';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address.';
+    }
+    if (!formData.whatsapp.trim()) newErrors.whatsapp = 'WhatsApp Number is required.';
+
+    // 1. Product Details
+    if (formData.products.length === 0 && !formData.customProductName.trim()) {
+      newErrors.products = 'Please select at least one product or enter a custom product name.';
+    }
+
+    // 3. Color Selection
+    if (!formData.selectedColor && !formData.customColor.trim()) {
+      newErrors.selectedColor = 'Please select a color swatch or write a custom color.';
+    }
+
+    // 4. Technical Specs
+    if (!formData.material) newErrors.material = 'Please select a leather material.';
+    if (!formData.styleModel) newErrors.styleModel = 'Please select a style / model.';
+    if (!formData.leatherFinish) newErrors.leatherFinish = 'Please select a leather finish.';
+    if (!formData.printingBranding) newErrors.printingBranding = 'Please select a printing & branding option.';
+
+    // 5. Sizes & 6. Quantity
+    if (formData.selectedSizes.length === 0) newErrors.selectedSizes = 'Please select at least one size.';
+    if (!formData.quantityOption && !formData.customQuantity.trim()) {
+      newErrors.quantityOption = 'Please select a batch quantity option or enter a custom quantity.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (!validateForm()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     const targetWhatsAppNumber = '923709085311';
 
-    const colorVal = `${formData.selectedColor || 'N/A'}${formData.customColor ? ` (${formData.customColor})` : ''}`;
+    const colorVal = `${formData.selectedColor || 'Custom'}${formData.customColor ? ` (${formData.customColor})` : ''}`;
 
     const tableMessage = `*NEW LEATHERWEAR SPECIFICATION INQUIRY*
 
@@ -124,23 +171,23 @@ export default function LeatherWearForm({ onBack }) {
 +-----------------------+----------------------------------+
 | SPECIFICATION FIELD   | CLIENT SELECTION                 |
 +-----------------------+----------------------------------+
-| Full Name             | ${formData.fullName || 'N/A'}
-| Company / Brand       | ${formData.companyName || 'N/A'}
-| Email                 | ${formData.email || 'N/A'}
-| WhatsApp No           | ${formData.whatsapp || 'N/A'}
+| Full Name             | ${formData.fullName}
+| Company / Brand       | ${formData.companyName}
+| Email                 | ${formData.email}
+| WhatsApp No           | ${formData.whatsapp}
 +-----------------------+----------------------------------+
-| Products Selected     | ${formData.products.length > 0 ? formData.products.join(', ') : 'None'}
+| Products Selected     | ${formData.products.length > 0 ? formData.products.join(', ') : 'Custom item'}
 | Custom Item Name      | ${formData.customProductName || 'N/A'}
 | Color Preference      | ${colorVal}
 +-----------------------+----------------------------------+
-| Material / Hide       | ${formData.material || 'N/A'}
-| Style / Model         | ${formData.styleModel || 'N/A'}
-| Leather Finish        | ${formData.leatherFinish || 'N/A'}
-| Printing & Branding   | ${formData.printingBranding || 'N/A'}
+| Material / Hide       | ${formData.material}
+| Style / Model         | ${formData.styleModel}
+| Leather Finish        | ${formData.leatherFinish}
+| Printing & Branding   | ${formData.printingBranding}
 +-----------------------+----------------------------------+
-| Sizes Required        | ${formData.selectedSizes.length > 0 ? formData.selectedSizes.join(', ') : 'None'}
+| Sizes Required        | ${formData.selectedSizes.join(', ')}
 | Custom Size Notes     | ${formData.customSizeNotes || 'None'}
-| Batch Quantity        | ${formData.quantityOption || 'N/A'}
+| Batch Quantity        | ${formData.quantityOption || 'Custom'}
 | Target Custom Qty     | ${formData.customQuantity || 'N/A'}
 +-----------------------+----------------------------------+
 \`\`\`
@@ -148,7 +195,7 @@ export default function LeatherWearForm({ onBack }) {
 *ADDITIONAL INSTRUCTIONS:*
 ${formData.additionalNotes || 'No additional instructions provided.'}
 
-*ATTACHED ARTWORK FILES:* ${formData.files.length} File(s) selected in browser.`.trim();
+*ATTACHED ARTWORK FILES:* ${formData.files.length > 0 ? `${formData.files.length} File(s) selected.` : 'No files attached.'}`.trim();
 
     const encodedMessage = encodeURIComponent(tableMessage);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${targetWhatsAppNumber}&text=${encodedMessage}`;
@@ -178,10 +225,16 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
       {/* Header */}
       <div className="border-b border-slate-200/80 pb-4">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold mb-2">
-          <Shield className="w-3.5 h-3.5" /> Direct WhatsApp Leather Order Builder
+          <Shield className="w-3.5 h-3.5" /> Get your Free Quote
         </div>
         <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Leather Wear & Outerwear Specifications</h2>
         <p className="text-xs text-slate-500">Configure hide selections, leather grain finishes, inner linings, embossing, and hardware options.</p>
+        {Object.keys(errors).length > 0 && (
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-xs text-red-600 font-bold">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>Please complete all highlighted required fields before submitting.</span>
+          </div>
+        )}
       </div>
 
       {/* Client Information */}
@@ -190,26 +243,71 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name *</label>
-            <input type="text" required value={formData.fullName} onChange={e => setFormData({ ...formData, fullName: e.target.value })} placeholder="Your full name" className="w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500" />
+            <input
+              type="text"
+              value={formData.fullName}
+              onChange={e => {
+                setFormData({ ...formData, fullName: e.target.value });
+                if (errors.fullName) setErrors(prev => ({ ...prev, fullName: null }));
+              }}
+              placeholder="Your full name"
+              className={`w-full bg-white/70 border ${errors.fullName ? 'border-red-500' : 'border-slate-200'} rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500`}
+            />
+            {errors.fullName && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.fullName}</p>}
           </div>
+
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Company / Label Name *</label>
-            <input type="text" required value={formData.companyName} onChange={e => setFormData({ ...formData, companyName: e.target.value })} placeholder="e.g. Auric Leatherworks" className="w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500" />
+            <input
+              type="text"
+              value={formData.companyName}
+              onChange={e => {
+                setFormData({ ...formData, companyName: e.target.value });
+                if (errors.companyName) setErrors(prev => ({ ...prev, companyName: null }));
+              }}
+              placeholder="e.g. Auric Leatherworks"
+              className={`w-full bg-white/70 border ${errors.companyName ? 'border-red-500' : 'border-slate-200'} rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500`}
+            />
+            {errors.companyName && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.companyName}</p>}
           </div>
+
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email Address *</label>
-            <input type="email" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="leather@brand.com" className="w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500" />
+            <input
+              type="email"
+              value={formData.email}
+              onChange={e => {
+                setFormData({ ...formData, email: e.target.value });
+                if (errors.email) setErrors(prev => ({ ...prev, email: null }));
+              }}
+              placeholder="leather@brand.com"
+              className={`w-full bg-white/70 border ${errors.email ? 'border-red-500' : 'border-slate-200'} rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500`}
+            />
+            {errors.email && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.email}</p>}
           </div>
+
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase mb-1">WhatsApp Number *</label>
-            <input type="text" required value={formData.whatsapp} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })} placeholder="+1 (555) 000-0000" className="w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500" />
+            <input
+              type="text"
+              value={formData.whatsapp}
+              onChange={e => {
+                setFormData({ ...formData, whatsapp: e.target.value });
+                if (errors.whatsapp) setErrors(prev => ({ ...prev, whatsapp: null }));
+              }}
+              placeholder="+1 (555) 000-0000"
+              className={`w-full bg-white/70 border ${errors.whatsapp ? 'border-red-500' : 'border-slate-200'} rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500`}
+            />
+            {errors.whatsapp && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.whatsapp}</p>}
           </div>
         </div>
       </div>
 
       {/* 1. Product Details */}
       <div>
-        <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-1">1. Product Details <span className="text-xs text-slate-400 font-normal">(Select all that apply)</span></h3>
+        <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-1">
+          1. Product Details * <span className="text-xs text-slate-400 font-normal">(Select all that apply)</span>
+        </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
           {leatherProducts.map((prod, idx) => {
             const isSelected = formData.products.includes(prod);
@@ -228,18 +326,30 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
             );
           })}
         </div>
-        <input type="text" placeholder="Write your own product name..." value={formData.customProductName} onChange={e => setFormData({ ...formData, customProductName: e.target.value })} className="mt-3 w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-500" />
+        <input
+          type="text"
+          placeholder="Or write custom product name..."
+          value={formData.customProductName}
+          onChange={e => {
+            setFormData({ ...formData, customProductName: e.target.value });
+            if (errors.products) setErrors(prev => ({ ...prev, products: null }));
+          }}
+          className="mt-3 w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-500"
+        />
+        {errors.products && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.products}</p>}
       </div>
 
       {/* 2. Upload Your Design & 3. Color */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-1">2. Upload Your Design <span className="text-xs text-slate-400 font-normal">(PDF, JPG, PNG, AI, etc.)</span></h3>
+          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-1">
+            2. Upload Your Design <span className="text-xs text-slate-400 font-normal">(Optional - PDF, JPG, PNG, AI, etc.)</span>
+          </h3>
           <div className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-5 text-center bg-white/40 transition relative cursor-pointer">
             <input type="file" multiple onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
             <Upload className="w-6 h-6 text-emerald-600 mx-auto mb-1" />
             <p className="text-xs text-slate-700 font-bold">Choose File or Drag & Drop Tech Pack</p>
-            <p className="text-[10px] text-slate-400 mt-1">Upload your vector artwork or jacket measurements</p>
+            <p className="text-[10px] text-slate-400 mt-1">Upload vector artwork or jacket measurements</p>
           </div>
           {formData.files.length > 0 && (
             <p className="text-xs text-emerald-600 font-bold mt-2">✓ {formData.files.length} File(s) Selected</p>
@@ -247,7 +357,9 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
         </div>
 
         <div>
-          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-2">3. Color <span className="text-xs text-slate-400 font-normal">(Select leather colors)</span></h3>
+          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-2">
+            3. Color * <span className="text-xs text-slate-400 font-normal">(Select swatch or write custom color)</span>
+          </h3>
           <div className="flex flex-wrap gap-2 items-center">
             {colorSwatches.map((color, idx) => {
               const isSelected = formData.selectedColor === color.name;
@@ -255,7 +367,10 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
                 <button
                   type="button"
                   key={idx}
-                  onClick={() => setFormData({ ...formData, selectedColor: color.name })}
+                  onClick={() => {
+                    setFormData({ ...formData, selectedColor: color.name });
+                    if (errors.selectedColor) setErrors(prev => ({ ...prev, selectedColor: null }));
+                  }}
                   className={`w-8 h-8 rounded-full border-2 transition-transform ${
                     isSelected ? 'ring-2 ring-emerald-600 scale-110 border-white' : 'border-slate-300 hover:scale-105'
                   }`}
@@ -265,7 +380,17 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
               );
             })}
           </div>
-          <input type="text" placeholder="Write custom color..." value={formData.customColor} onChange={e => setFormData({ ...formData, customColor: e.target.value })} className="mt-3 w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-500" />
+          <input
+            type="text"
+            placeholder="Or write custom color..."
+            value={formData.customColor}
+            onChange={e => {
+              setFormData({ ...formData, customColor: e.target.value });
+              if (errors.selectedColor) setErrors(prev => ({ ...prev, selectedColor: null }));
+            }}
+            className="mt-3 w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-500"
+          />
+          {errors.selectedColor && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.selectedColor}</p>}
         </div>
       </div>
 
@@ -274,35 +399,67 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
         <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide">4. Technical Leather Specifications</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Material / Leather Hide</label>
-            <select value={formData.material} onChange={e => setFormData({ ...formData, material: e.target.value })} className="w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-emerald-500">
+            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Material / Leather Hide *</label>
+            <select
+              value={formData.material}
+              onChange={e => {
+                setFormData({ ...formData, material: e.target.value });
+                if (errors.material) setErrors(prev => ({ ...prev, material: null }));
+              }}
+              className={`w-full bg-white/70 border ${errors.material ? 'border-red-500' : 'border-slate-200'} rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-emerald-500`}
+            >
               <option value="">Select Material</option>
               {materials.map((m, idx) => <option key={idx} value={m}>{m}</option>)}
             </select>
+            {errors.material && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.material}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Style / Model</label>
-            <select value={formData.styleModel} onChange={e => setFormData({ ...formData, styleModel: e.target.value })} className="w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-emerald-500">
+            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Style / Model *</label>
+            <select
+              value={formData.styleModel}
+              onChange={e => {
+                setFormData({ ...formData, styleModel: e.target.value });
+                if (errors.styleModel) setErrors(prev => ({ ...prev, styleModel: null }));
+              }}
+              className={`w-full bg-white/70 border ${errors.styleModel ? 'border-red-500' : 'border-slate-200'} rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-emerald-500`}
+            >
               <option value="">Select Style / Model</option>
               {styleModels.map((s, idx) => <option key={idx} value={s}>{s}</option>)}
             </select>
+            {errors.styleModel && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.styleModel}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Leather Finish</label>
-            <select value={formData.leatherFinish} onChange={e => setFormData({ ...formData, leatherFinish: e.target.value })} className="w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-emerald-500">
+            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Leather Finish *</label>
+            <select
+              value={formData.leatherFinish}
+              onChange={e => {
+                setFormData({ ...formData, leatherFinish: e.target.value });
+                if (errors.leatherFinish) setErrors(prev => ({ ...prev, leatherFinish: null }));
+              }}
+              className={`w-full bg-white/70 border ${errors.leatherFinish ? 'border-red-500' : 'border-slate-200'} rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-emerald-500`}
+            >
               <option value="">Select Leather Finish</option>
               {leatherFinishes.map((lf, idx) => <option key={idx} value={lf}>{lf}</option>)}
             </select>
+            {errors.leatherFinish && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.leatherFinish}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Printing & Branding</label>
-            <select value={formData.printingBranding} onChange={e => setFormData({ ...formData, printingBranding: e.target.value })} className="w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-emerald-500">
+            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Printing & Branding *</label>
+            <select
+              value={formData.printingBranding}
+              onChange={e => {
+                setFormData({ ...formData, printingBranding: e.target.value });
+                if (errors.printingBranding) setErrors(prev => ({ ...prev, printingBranding: null }));
+              }}
+              className={`w-full bg-white/70 border ${errors.printingBranding ? 'border-red-500' : 'border-slate-200'} rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-emerald-500`}
+            >
               <option value="">Select Printing & Branding</option>
               {printingBrandings.map((pb, idx) => <option key={idx} value={pb}>{pb}</option>)}
             </select>
+            {errors.printingBranding && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.printingBranding}</p>}
           </div>
         </div>
       </div>
@@ -310,7 +467,9 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
       {/* 5. Size Range & 6. Quantity */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-2">5. Size Range <span className="text-xs text-slate-400 font-normal">(Select desired size details)</span></h3>
+          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-2">
+            5. Size Range * <span className="text-xs text-slate-400 font-normal">(Select desired size details)</span>
+          </h3>
           <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
             {sizeRanges.map((sz, idx) => {
               const isSelected = formData.selectedSizes.includes(sz);
@@ -328,17 +487,30 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
               );
             })}
           </div>
-          <input type="text" placeholder="Write custom size chart instructions..." value={formData.customSizeNotes} onChange={e => setFormData({ ...formData, customSizeNotes: e.target.value })} className="mt-2 w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-emerald-500" />
+          {errors.selectedSizes && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.selectedSizes}</p>}
+
+          <input
+            type="text"
+            placeholder="Write custom size chart instructions (Optional)..."
+            value={formData.customSizeNotes}
+            onChange={e => setFormData({ ...formData, customSizeNotes: e.target.value })}
+            className="mt-2 w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-emerald-500"
+          />
         </div>
 
         <div>
-          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-2">6. Quantity <span className="text-xs text-slate-400 font-normal">(Select batch size options)</span></h3>
+          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-2">
+            6. Quantity * <span className="text-xs text-slate-400 font-normal">(Select batch size option or specify target quantity)</span>
+          </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {quantityOptions.map((qty, idx) => (
               <button
                 type="button"
                 key={idx}
-                onClick={() => setFormData({ ...formData, quantityOption: qty })}
+                onClick={() => {
+                  setFormData({ ...formData, quantityOption: qty });
+                  if (errors.quantityOption) setErrors(prev => ({ ...prev, quantityOption: null }));
+                }}
                 className={`p-2.5 rounded-xl text-xs font-bold border transition-all ${
                   formData.quantityOption === qty ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white/70 text-slate-700 border-slate-200 hover:border-slate-400'
                 }`}
@@ -347,14 +519,32 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
               </button>
             ))}
           </div>
-          <input type="text" placeholder="Write custom target quantity..." value={formData.customQuantity} onChange={e => setFormData({ ...formData, customQuantity: e.target.value })} className="mt-2 w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-emerald-500" />
+          <input
+            type="text"
+            placeholder="Or write custom target quantity..."
+            value={formData.customQuantity}
+            onChange={e => {
+              setFormData({ ...formData, customQuantity: e.target.value });
+              if (errors.quantityOption) setErrors(prev => ({ ...prev, quantityOption: null }));
+            }}
+            className="mt-2 w-full bg-white/70 border border-slate-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-emerald-500"
+          />
+          {errors.quantityOption && <p className="text-red-500 text-[11px] font-bold mt-1">{errors.quantityOption}</p>}
         </div>
       </div>
 
       {/* 7. Additional Notes */}
       <div>
-        <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-1">7. Additional Notes <span className="text-xs text-slate-400 font-normal">(Special Instructions)</span></h3>
-        <textarea rows="3" value={formData.additionalNotes} onChange={e => setFormData({ ...formData, additionalNotes: e.target.value })} placeholder="Write any special instructions or additional details here..." className="w-full bg-white/70 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-emerald-500"></textarea>
+        <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide mb-1">
+          7. Additional Notes <span className="text-xs text-slate-400 font-normal">(Optional Special Instructions)</span>
+        </h3>
+        <textarea
+          rows="3"
+          value={formData.additionalNotes}
+          onChange={e => setFormData({ ...formData, additionalNotes: e.target.value })}
+          placeholder="Write any special instructions or additional details here..."
+          className="w-full bg-white/70 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-emerald-500"
+        ></textarea>
       </div>
 
       {/* Submit Button */}
