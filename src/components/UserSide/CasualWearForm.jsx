@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, Upload, Send, CheckCircle2, Sparkles, MessageSquare, AlertCircle } from 'lucide-react';
+import { User, Mail, Phone, Upload, Send, CheckCircle2, Sparkles, MessageSquare, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function CasualWearForm({ onBack }) {
   const [formData, setFormData] = useState({
@@ -33,6 +33,11 @@ export default function CasualWearForm({ onBack }) {
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Cloudinary Configurations
+  const CLOUD_NAME = 'dnwoc6twn';
+  const UPLOAD_PRESET = 'casualwear_preset';
 
   // Data mapped directly from uploaded screenshots
   const productCategories = [
@@ -96,7 +101,6 @@ export default function CasualWearForm({ onBack }) {
   const sizeRanges = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL'];
   const quantityOptions = ['Sample', '10 UNITS', '20 UNITS', '30 UNITS', '50 UNITS', '100 UNITS', '100+ Pieces'];
 
-  // Toggle multi-select array fields
   const handleProductToggle = (prod) => {
     setFormData(prev => ({
       ...prev,
@@ -122,10 +126,38 @@ export default function CasualWearForm({ onBack }) {
     setFormData(prev => ({ ...prev, files: [...prev.files, ...uploadedFiles] }));
   };
 
+  // Upload files to Cloudinary directly from client side
+  const uploadFilesToCloudinary = async (files) => {
+    const fileUrls = [];
+
+    for (const file of files) {
+      const data = new FormData();
+      data.append('file', file);
+      data.append('upload_preset', UPLOAD_PRESET);
+
+      try {
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
+          {
+            method: 'POST',
+            body: data,
+          }
+        );
+        const result = await response.json();
+        if (result.secure_url) {
+          fileUrls.push(result.secure_url);
+        }
+      } catch (err) {
+        console.error('Cloudinary Upload Failed:', err);
+      }
+    }
+
+    return fileUrls;
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
-    // 1. Client & Brand Info
     if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required.';
     if (!formData.brandName.trim()) newErrors.brandName = 'Brand / Company Name is required.';
     if (!formData.email.trim()) {
@@ -135,15 +167,12 @@ export default function CasualWearForm({ onBack }) {
     }
     if (!formData.whatsapp.trim()) newErrors.whatsapp = 'WhatsApp Number is required.';
 
-    // 2. Product Details
     if (formData.products.length === 0) newErrors.products = 'Please select at least one product category.';
 
-    // 3. Color Selection
     if (!formData.selectedColor && !formData.customColor.trim()) {
       newErrors.selectedColor = 'Please choose a color swatch or specify a custom color.';
     }
 
-    // 4. Fabric Specifications
     if (!formData.fabricType) newErrors.fabricType = 'Please select a fabric type.';
     if (!formData.fabricGSM) {
       newErrors.fabricGSM = 'Please select a fabric GSM.';
@@ -163,7 +192,6 @@ export default function CasualWearForm({ onBack }) {
       newErrors.customFit = 'Please specify your custom measurement.';
     }
 
-    // 5. Customization & Branding
     if (!formData.printingTechnique) newErrors.printingTechnique = 'Please select a printing technique.';
     if (!formData.rhinestones) {
       newErrors.rhinestones = 'Please select a rhinestone option.';
@@ -177,7 +205,6 @@ export default function CasualWearForm({ onBack }) {
       newErrors.customLabels = 'Please specify label details.';
     }
 
-    // 6. Sizes & Quantity
     if (formData.selectedSizes.length === 0) newErrors.selectedSizes = 'Please select at least one size.';
     if (!formData.quantityOption && !formData.customQuantity.trim()) {
       newErrors.quantityOption = 'Please select a batch quantity or specify custom quantity.';
@@ -187,13 +214,20 @@ export default function CasualWearForm({ onBack }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Compile full text specification payload and dispatch to WhatsApp
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
+    }
+
+    setUploading(true);
+
+    // Upload files to Cloudinary first
+    let uploadedUrls = [];
+    if (formData.files.length > 0) {
+      uploadedUrls = await uploadFilesToCloudinary(formData.files);
     }
 
     const targetWhatsAppNumber = '923709085311';
@@ -233,13 +267,14 @@ export default function CasualWearForm({ onBack }) {
 *7. ADDITIONAL INSTRUCTIONS*
 ${formData.additionalNotes || 'No additional notes provided.'}
 ------------------------------------
-*Uploaded Artwork Files:* ${formData.files.length > 0 ? `${formData.files.length} file(s) attached.` : 'No files attached.'}
+*ATTACHED ARTWORK / TECH PACKS:*
+${uploadedUrls.length > 0 ? uploadedUrls.join('\n') : 'No files attached.'}
     `.trim();
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${targetWhatsAppNumber}?text=${encodedMessage}`;
 
-    // Trigger WhatsApp link
+    setUploading(false);
     window.open(whatsappUrl, '_blank');
     setSubmitted(true);
   };
@@ -250,7 +285,7 @@ ${formData.additionalNotes || 'No additional notes provided.'}
         <CheckCircle2 className="w-16 h-16 text-amber-500 mx-auto mb-4" />
         <h2 className="text-3xl font-black text-slate-900 mb-2">Inquiry Forwarded to WhatsApp!</h2>
         <p className="text-slate-600 max-w-lg mx-auto text-sm mb-6">
-          Your full specification has been compiled. If WhatsApp did not open automatically, please click below.
+          Your full specification and uploaded file links have been compiled. If WhatsApp did not open automatically, please click below.
         </p>
         <button onClick={onBack} className="px-6 py-3 rounded-xl bg-slate-900 text-amber-400 font-bold text-sm hover:bg-slate-800 transition">
           Return to Category Hub
@@ -692,7 +727,7 @@ ${formData.additionalNotes || 'No additional notes provided.'}
 
         <div>
           <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-            Attach Artwork / Tech Pack (Vector / PDF) <span className="text-xs text-slate-400 font-normal">(Optional)</span>
+            Attach Artwork / Tech Pack (Vector / PDF / Image) <span className="text-xs text-slate-400 font-normal">(Optional)</span>
           </label>
           <div className="border-2 border-dashed border-slate-300 hover:border-amber-500 bg-white/40 rounded-2xl p-4 text-center transition relative cursor-pointer">
             <input type="file" multiple onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
@@ -700,15 +735,27 @@ ${formData.additionalNotes || 'No additional notes provided.'}
             <p className="text-xs text-slate-600 font-medium">
               {formData.files.length > 0
                 ? `${formData.files.length} file(s) attached`
-                : 'Attach files (AI, PSD, PDF, PNG)'}
+                : 'Attach files (AI, PSD, PDF, PNG, JPG)'}
             </p>
           </div>
         </div>
       </div>
 
       {/* Submit Button */}
-      <button type="submit" className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">
-        <MessageSquare className="w-5 h-5" /> Send Order Inquiry via WhatsApp (+92 370 9085311)
+      <button 
+        type="submit" 
+        disabled={uploading}
+        className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white font-extrabold text-base shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
+      >
+        {uploading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" /> Uploading Artwork & Preparing Order...
+          </>
+        ) : (
+          <>
+            <MessageSquare className="w-5 h-5" /> Send Order Inquiry via WhatsApp (+92 370 9085311)
+          </>
+        )}
       </button>
     </form>
   );

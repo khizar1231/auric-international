@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Upload, CheckCircle2, MessageSquare, Sparkles, AlertCircle } from 'lucide-react';
+import { Shield, Upload, CheckCircle2, MessageSquare, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function LeatherWearForm({ onBack }) {
   const [formData, setFormData] = useState({
@@ -37,6 +37,11 @@ export default function LeatherWearForm({ onBack }) {
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Cloudinary Configurations
+  const CLOUD_NAME = 'dnwoc6twn';
+  const UPLOAD_PRESET = 'leatherwear';
 
   // Exact Options Mapped from Uploaded Screenshots
   const leatherProducts = [
@@ -114,6 +119,35 @@ export default function LeatherWearForm({ onBack }) {
     }));
   };
 
+  // Upload files to Cloudinary directly from client side
+  const uploadFilesToCloudinary = async (files) => {
+    const fileUrls = [];
+
+    for (const file of files) {
+      const data = new FormData();
+      data.append('file', file);
+      data.append('upload_preset', UPLOAD_PRESET);
+
+      try {
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
+          {
+            method: 'POST',
+            body: data,
+          }
+        );
+        const result = await response.json();
+        if (result.secure_url) {
+          fileUrls.push(result.secure_url);
+        }
+      } catch (err) {
+        console.error('Cloudinary Upload Failed:', err);
+      }
+    }
+
+    return fileUrls;
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -153,12 +187,20 @@ export default function LeatherWearForm({ onBack }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
+    }
+
+    setUploading(true);
+
+    // Upload files to Cloudinary first
+    let uploadedUrls = [];
+    if (formData.files.length > 0) {
+      uploadedUrls = await uploadFilesToCloudinary(formData.files);
     }
 
     const targetWhatsAppNumber = '923709085311';
@@ -195,11 +237,13 @@ export default function LeatherWearForm({ onBack }) {
 *ADDITIONAL INSTRUCTIONS:*
 ${formData.additionalNotes || 'No additional instructions provided.'}
 
-*ATTACHED ARTWORK FILES:* ${formData.files.length > 0 ? `${formData.files.length} File(s) selected.` : 'No files attached.'}`.trim();
+*ATTACHED ARTWORK / TECH PACKS:*
+${uploadedUrls.length > 0 ? uploadedUrls.join('\n') : 'No files attached.'}`.trim();
 
     const encodedMessage = encodeURIComponent(tableMessage);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${targetWhatsAppNumber}&text=${encodedMessage}`;
 
+    setUploading(false);
     window.location.href = whatsappUrl;
     setSubmitted(true);
   };
@@ -210,7 +254,7 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
         <CheckCircle2 className="w-16 h-16 text-emerald-600 mx-auto mb-4" />
         <h2 className="text-3xl font-black text-slate-900 mb-2">Leather Inquiry Forwarded to WhatsApp!</h2>
         <p className="text-slate-600 max-w-lg mx-auto text-sm mb-6">
-          Your full leather specification report has been compiled into a table format. If WhatsApp did not open automatically, please click below.
+          Your full leather specification report and uploaded file links have been compiled into a table format. If WhatsApp did not open automatically, please click below.
         </p>
         <button onClick={onBack} className="px-6 py-3 rounded-xl bg-slate-900 text-emerald-400 font-bold text-sm hover:bg-slate-800 transition">
           Return to Category Hub
@@ -548,8 +592,20 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
       </div>
 
       {/* Submit Button */}
-      <button type="submit" className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">
-        <MessageSquare className="w-5 h-5" /> Send Leatherwear Inquiry via WhatsApp (+92 370 9085311)
+      <button 
+        type="submit" 
+        disabled={uploading}
+        className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white font-extrabold text-base shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
+      >
+        {uploading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" /> Uploading Artwork & Preparing Order...
+          </>
+        ) : (
+          <>
+            <MessageSquare className="w-5 h-5" /> Send Leatherwear Inquiry via WhatsApp (+92 370 9085311)
+          </>
+        )}
       </button>
 
     </form>

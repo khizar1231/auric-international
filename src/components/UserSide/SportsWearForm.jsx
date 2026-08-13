@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, Upload, CheckCircle2, MessageSquare, AlertCircle } from 'lucide-react';
+import { Activity, Upload, CheckCircle2, MessageSquare, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function SportsWearForm({ onBack }) {
   const [formData, setFormData] = useState({
@@ -40,6 +40,11 @@ export default function SportsWearForm({ onBack }) {
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Cloudinary Configurations
+  const CLOUD_NAME = 'dnwoc6twn';
+  const UPLOAD_PRESET = 'sportswear';
 
   // Exact Options Mapped from Uploaded Images
   const sportsProducts = [
@@ -128,6 +133,35 @@ export default function SportsWearForm({ onBack }) {
     }));
   };
 
+  // Upload files to Cloudinary directly from client side
+  const uploadFilesToCloudinary = async (files) => {
+    const fileUrls = [];
+
+    for (const file of files) {
+      const data = new FormData();
+      data.append('file', file);
+      data.append('upload_preset', UPLOAD_PRESET);
+
+      try {
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
+          {
+            method: 'POST',
+            body: data,
+          }
+        );
+        const result = await response.json();
+        if (result.secure_url) {
+          fileUrls.push(result.secure_url);
+        }
+      } catch (err) {
+        console.error('Cloudinary Upload Failed:', err);
+      }
+    }
+
+    return fileUrls;
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -170,12 +204,20 @@ export default function SportsWearForm({ onBack }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
+    }
+
+    setUploading(true);
+
+    // Upload files to Cloudinary first
+    let uploadedUrls = [];
+    if (formData.files.length > 0) {
+      uploadedUrls = await uploadFilesToCloudinary(formData.files);
     }
 
     const targetWhatsAppNumber = '923709085311';
@@ -193,9 +235,8 @@ export default function SportsWearForm({ onBack }) {
 • *Items:* ${formData.products.length > 0 ? formData.products.join(', ') : 'Custom item'}
 • *Custom Item Name:* ${formData.customProductName || 'None'}
 
-*2. COLOR & ARTWORK*
+*2. COLOR PREFERENCE*
 • *Color Selected:* ${formData.selectedColor || 'Custom'} ${formData.customColor ? `(${formData.customColor})` : ''}
-• *Artwork Files:* ${formData.files.length > 0 ? `${formData.files.length} file(s) attached.` : 'No files attached.'}
 
 *3. TECHNICAL PERFORMANCE SPECS*
 • *Fabric Type:* ${formData.fabricType}
@@ -215,11 +256,14 @@ export default function SportsWearForm({ onBack }) {
 *5. ADDITIONAL SPECIAL INSTRUCTIONS*
 ${formData.additionalNotes || 'No additional instructions provided.'}
 ------------------------------------
+*ATTACHED ARTWORK / DESIGN FILES:*
+${uploadedUrls.length > 0 ? uploadedUrls.join('\n') : 'No files attached.'}
     `.trim();
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${targetWhatsAppNumber}?text=${encodedMessage}`;
 
+    setUploading(false);
     window.open(whatsappUrl, '_blank');
     setSubmitted(true);
   };
@@ -230,7 +274,7 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
         <CheckCircle2 className="w-16 h-16 text-blue-600 mx-auto mb-4" />
         <h2 className="text-3xl font-black text-slate-900 mb-2">Sportswear Inquiry Sent to WhatsApp!</h2>
         <p className="text-slate-600 max-w-lg mx-auto text-sm mb-6">
-          Your full performance specification has been generated. If WhatsApp did not launch automatically, please click below.
+          Your full performance specification and uploaded file links have been generated. If WhatsApp did not launch automatically, please click below.
         </p>
         <button onClick={onBack} className="px-6 py-3 rounded-xl bg-slate-900 text-blue-400 font-bold text-sm hover:bg-slate-800 transition">
           Return to Category Hub
@@ -616,8 +660,20 @@ ${formData.additionalNotes || 'No additional instructions provided.'}
       </div>
 
       {/* Submit Button */}
-      <button type="submit" className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-base shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center gap-2">
-        <MessageSquare className="w-5 h-5" /> Send Sportswear Inquiry via WhatsApp (+92 370 9085311)
+      <button 
+        type="submit" 
+        disabled={uploading}
+        className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-extrabold text-base shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+      >
+        {uploading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" /> Uploading Artwork & Preparing Order...
+          </>
+        ) : (
+          <>
+            <MessageSquare className="w-5 h-5" /> Send Sportswear Inquiry via WhatsApp (+92 370 9085311)
+          </>
+        )}
       </button>
 
     </form>
